@@ -11,9 +11,9 @@
     <div class="tasks">
         <p v-if="tasks.length == 0" class="noTask">Aucune tâche à compléter</p>
 
-        <ul v-if="tasks.filter(task => !task.completed).length != 0">
+        <ul v-if="uncompletedTasks.length != 0">
             <h3>Tâches non complétés</h3>
-            <li :key="`${task.date}`" v-for="task in tasks.filter(task => !task.completed)">
+            <li :key="`${task.date}`" v-for="task in uncompletedTasks">
                 <span>{{ task.title }}</span>
                 <span>{{ new Date(task.date).toLocaleDateString() }} {{ new Date(task.date).toLocaleTimeString() }}</span>
                 <button @click="completedTask(task.title, task.date)">✅</button>
@@ -22,9 +22,9 @@
 
         <hr v-if="tasks.length != 0">
 
-        <ul v-if="tasks.filter(task => task.completed).length != 0 && !mask">
+        <ul v-if="completedTasks.length != 0 && !mask">
             <h3>Tâches complétées</h3>
-            <li :key="`${task.date}`" v-for="task in tasks.filter(task => task.completed)">
+            <li :key="`${task.date}`" v-for="task in completedTasks">
                 <span class="line-through">{{ task.title }}</span>
                 <span>{{ new Date(task.date).toLocaleDateString() }}  {{ new Date(task.date).toLocaleTimeString() }}</span>
             </li>
@@ -36,10 +36,16 @@
 
 <script lang="ts" setup>
 
-import {ref} from 'vue';
+import {computed, ref, type Ref} from 'vue';
+
+interface Task {
+    title: string,
+    completed: boolean,
+    date: number
+}
 
 const newTask = ref('');
-const tasks = ref([]);
+const tasks:Ref<Task[], Task[]> = ref([]);
 const mask = ref(false);
 
 const addTask = () => {
@@ -64,12 +70,20 @@ const addTask = () => {
 
 
 const completedTask = (title:string, date:number) => {
-    tasks.value.map((task) => {
+    tasks.value.map((task:Task) => {
         if(task.title === title && task.date === date) {
             task.completed = true;
         }
     })
 }
+
+const completedTasks = computed((): Task[] => {
+    return tasks.value.filter((task:Task) => task.completed);
+})
+
+const uncompletedTasks = computed((): Task[] => {
+    return tasks.value.filter((task:Task) => !task.completed);
+})
 
 </script>
 
